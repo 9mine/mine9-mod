@@ -1,5 +1,8 @@
 print("Loading libs . . .")
 local path = minetest.get_modpath("mine9")
+dofile(path .. "/tools.lua")
+dofile(path .. "/nodes.lua")
 dofile(path .. "/nmine.lua")
 dofile(path .. "/platforms.lua")
+dofile(path .. "/on_join.lua")
 print("Libs loaded.")

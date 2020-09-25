@@ -10,6 +10,16 @@ function platforms.create(origin, size, orientation, node_name)
         pos2 = {x = pos1.x + size, y = pos1.y + size, z = pos1.z}
     end
     worldedit.set(pos1, pos2, node_name)
+    local creation_info = {
+        origin = origin,
+        size = size,
+        orientation = orientation
+    }
+    platforms.set_meta(origin, size, orientation, "creation_info", creation_info)
+end
+
+function platforms.wipe(origin, size, orientation)
+    platforms.create(origin, size, orientation, "air")
 end
 
 function platforms.set_meta(origin, size, orientation, meta_name, meta_data)
