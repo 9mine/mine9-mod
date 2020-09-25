@@ -20,6 +20,7 @@ end
 
 function platforms.wipe(origin, size, orientation)
     platforms.create(origin, size, orientation, "air")
+    platforms.set_meta(origin, size, orientation, "creation_info", nil)
 end
 
 function platforms.set_meta(origin, size, orientation, meta_name, meta_data)
@@ -47,4 +48,9 @@ function platforms.set_meta_origin(origin, meta_name, meta_data)
     local meta = minetest.serialize(meta_data)
     local node = minetest.get_meta({x = x, y = y, z = z})
     node:set_string(meta_name, meta)
+end
+
+function platforms.get_creation_info(pos)
+    local node_meta = minetest.get_meta(pos)
+    return minetest.deserialize(node_meta:get_string("creation_info"))
 end
