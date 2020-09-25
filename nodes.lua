@@ -16,6 +16,8 @@ minetest.register_node("mine9:platform", {
         if capabilities.damage_groups.flip == 1 then
             local node = platforms.get_creation_info(pos)
             platforms.wipe(node.origin, node.size, node.orientation)
+            local orientation = node.orientation == "horizontal" and "vertical" or "horizontal"
+            platforms.create(node.origin, node.size, orientation, "mine9:platform")
         end
         if capabilities.damage_groups.wipe == 1 then
             local node = platforms.get_creation_info(pos)

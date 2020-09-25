@@ -1,14 +1,13 @@
 platforms = {}
 function platforms.create(origin, size, orientation, node_name)
-    local pos1 = origin
-    local pos2 = origin
     if not node_name then node_name = "default:glass" end
-    if orientation == "horizontal" then
-        pos2 = {x = pos1.x + size, y = pos1.y, z = pos1.z + size}
-    end
-    if orientation == "vertical" then
-        pos2 = {x = pos1.x + size, y = pos1.y + size, z = pos1.z}
-    end
+    local pos1 = origin
+
+    local x = pos1.x + size
+    local y = orientation == "horizontal" and pos1.y or pos1.y + size
+    local z = orientation == "horizontal" and pos1.z + size or pos1.z
+    local pos2 = {x = x, y = y, z = z}
+
     worldedit.set(pos1, pos2, node_name)
     local creation_info = {
         origin = origin,
@@ -25,18 +24,13 @@ end
 
 function platforms.set_meta(origin, size, orientation, meta_name, meta_data)
     local meta = minetest.serialize(meta_data)
-    local pos1 = origin
-    local x_st = pos1.x
-    local y_st = pos1.y
-    local z_st = pos1.z
+    local x_end = origin.x + size
+    local y_end = orientation == "horizontal" and origin.y or origin.y + size
+    local z_end = orientation == "horizontal" and origin.z + size or origin.z
 
-    local x_end = pos1.x + size
-    local y_end = orientation == "horizontal" and pos1.y or pos1.y + size
-    local z_end = orientation == "horizontal" and pos1.z + size or pos1.z
-
-    for z = z_st, z_end do
-        for y = y_st, y_end do
-            for x = x_st, x_end do
+    for z = origin.z, z_end do
+        for y = origin.y, y_end do
+            for x = origin.x, x_end do
                 local node = minetest.get_meta({x = x, y = y, z = z})
                 node:set_string(meta_name, meta)
             end
