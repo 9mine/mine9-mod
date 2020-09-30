@@ -110,3 +110,58 @@ end
 function platforms.get_host_info(pos)
     return platforms.get_meta_origin(pos, "host_info")
 end
+
+function platforms.read_cmd(host_info, cmd_path)
+    local tcp = socket:tcp()
+    local connection, err = tcp:connect(host_info["host"], host_info["port"])
+    if (err ~= nil) then
+        print("Connection error: " .. dump(err))
+        return
+    end
+
+    local conn = np.attach(tcp, "root", "")
+    local p = conn:newfid()
+    np:walk(conn.rootfid, p, cmd_path)
+    conn:open(p, 0)
+    local buf_size = 4096
+    local offset = 0
+    local content = ""
+    while (true) do
+        local dt = conn:read(p, offset, buf_size)
+        if (dt == nil) then break end
+        content = content .. tostring(dt)
+        offset = offset + #dt
+    end
+    conn:clunk(p)
+    conn:clunk(conn.rootfid)
+    tcp:close()
+    return content ~= "" and nil or content
+end
+
+function platforms.write_cmd(host_info, cmd_path, command)
+    local tcp = socket:tcp()
+    local connection, err = tcp:connect(host_info["host"], host_info["port"])
+    if (err ~= nil) then
+        print("Connection error: " .. dump(err))
+        return
+    end
+
+    local conn = np.attach(tcp, "root", "")
+    local f = conn:newfid()
+    conn:walk(conn.rootfid, f, cmd_path)
+    conn:open(f, 1)
+    local buf = data.new(command)
+    local n = conn:write(f, 0, buf)
+    if n ~= #buf then
+        error("test: expected to write " .. #buf .. " bytes but wrote " .. n)
+    end
+    conn:clunk(f)
+    conn:clunk(conn.rootfid)
+    tcp:close()
+end
+
+function platforms.execute_cmd(host_info, cmd_path, command)
+    platforms.write_cmd(host_info, cmd_path, command)
+    local result = platforms.read_cmd(host_info, cmd_path)
+    return result
+end
