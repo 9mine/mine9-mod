@@ -165,3 +165,9 @@ function platforms.execute_cmd(host_info, cmd_path, command)
     local result = platforms.read_cmd(host_info, cmd_path)
     return result
 end
+
+function platforms.get_size_by_dir(dir_size) 
+    local platform_size = math.ceil(math.sqrt((dir_size / 15) * 100)) < 3 and 3 or
+    math.ceil(math.sqrt((dir_size / 15) * 100))
+    return platform_size
+end
