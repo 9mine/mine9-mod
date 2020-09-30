@@ -17,3 +17,12 @@ function nmine.shuffle(content)
     end
     return shuffled
 end
+
+function nmine.node_pos_near(player_name, radius, node_name)
+    radius = radius or 6
+    node_name = node_name or "mine9:platform"
+    local player = minetest.get_player_by_name(player_name)
+    local pos = player:get_pos()
+    local node_pos = minetest.find_node_near(pos, radius, {node_name})
+    return node_pos, player
+end
