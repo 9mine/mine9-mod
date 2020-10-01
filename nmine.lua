@@ -8,7 +8,6 @@ function nmine.populate_inventory(inventory, ...)
     end
 end
 
-
 function nmine.shuffle(content)
     local shuffled = {}
     for i, v in ipairs(content) do
@@ -26,3 +25,4 @@ function nmine.node_pos_near(player_name, radius, node_name)
     local node_pos = minetest.find_node_near(pos, radius, {node_name})
     return node_pos, player
 end
+
