@@ -1,7 +1,7 @@
 platforms = {}
-function platforms.create(origin, size, orientation, node_name)
+function platforms.create(storage, size, orientation, node_name)
     if not node_name then node_name = "default:glass" end
-    local pos1 = origin
+    local pos1 = storage
 
     local x = pos1.x + size
     local y = orientation == "horizontal" and pos1.y or pos1.y + size
@@ -10,21 +10,21 @@ function platforms.create(origin, size, orientation, node_name)
 
     worldedit.set(pos1, pos2, node_name)
     local creation_info = {
-        origin = origin,
+        storage = storage,
         size = size,
         orientation = orientation
     }
-    platforms.set_meta(origin, size, orientation, "creation_info", creation_info)
-    platforms.generate_empty_slots(origin, size, orientation)
+    platforms.set_creation_info(storage, size, orientation, creation_info)
+    platforms.generate_empty_slots(storage, size, orientation)
 end
 
-function platforms.wipe(origin, size, orientation)
-    platforms.wipe_top(origin, size, orientation)
-    platforms.create(origin, size, orientation, "air")
+function platforms.wipe(storage, size, orientation)
+    platforms.wipe_top(storage, size, orientation)
+    platforms.create(storage, size, orientation, "air")
 end
 
-function platforms.wipe_top(origin, size, orientation)
-    local full = platforms.get_full_slots(origin)
+function platforms.wipe_top(storage, size, orientation)
+    local full = platforms.get_full_slots(storage)
     if full ~= nil then
         for k, v in pairs(full) do
             local objects = minetest.get_objects_inside_radius(v, 2)
@@ -37,78 +37,61 @@ function platforms.wipe_top(origin, size, orientation)
     end
 end
 
-function platforms.generate_empty_slots(origin, size, orientation)
+function platforms.generate_empty_slots(storage, size, orientation)
     local empty_slots = {}
-    local x_end = origin.x + size
-    local y_end = orientation == "horizontal" and origin.y or origin.y + size
-    local z_end = orientation == "horizontal" and origin.z + size or origin.z
+    local x_end = storage.x + size
+    local y_end = orientation == "horizontal" and storage.y or storage.y + size
+    local z_end = orientation == "horizontal" and storage.z + size or storage.z
 
-    for z = origin.z, z_end do
-        for y = origin.y, y_end do
-            for x = origin.x, x_end do
+    for z = storage.z, z_end do
+        for y = storage.y, y_end do
+            for x = storage.x, x_end do
                 local point = {x = x, y = y, z = z}
                 table.insert(empty_slots, point)
             end
         end
     end
     empty_slots = nmine.shuffle(empty_slots)
-    platforms.set_meta_origin(origin, "empty_slots", empty_slots)
+    platforms.storage_set(storage, "empty_slots", empty_slots)
 end
 
-function platforms.set_meta(origin, size, orientation, meta_name, meta_data)
+function platforms.set_creation_info(storage, size, orientation, meta_data)
 
     local meta = meta_data == nil and nil or minetest.serialize(meta_data)
-    local x_end = origin.x + size
-    local y_end = orientation == "horizontal" and origin.y or origin.y + size
-    local z_end = orientation == "horizontal" and origin.z + size or origin.z
+    local x_end = storage.x + size
+    local y_end = orientation == "horizontal" and storage.y or storage.y + size
+    local z_end = orientation == "horizontal" and storage.z + size or storage.z
 
-    for z = origin.z, z_end do
-        for y = origin.y, y_end do
-            for x = origin.x, x_end do
+    for z = storage.z, z_end do
+        for y = storage.y, y_end do
+            for x = storage.x, x_end do
                 local point = {x = x, y = y, z = z}
                 local node = minetest.get_meta(point)
-                node:set_string(meta_name, meta)
+                node:set_string("creation_info", meta)
             end
         end
     end
 end
 
-function platforms.set_meta_origin(pos, meta_name, meta_data)
-    local meta = minetest.serialize(meta_data)
-    local origin = platforms.get_creation_info(pos).origin
-    local node = minetest.get_meta(origin)
-    node:set_string(meta_name, meta)
+function platforms.storage_set(pos, meta_name, meta_data)
+    local node = minetest.get_meta(platforms.get_creation_info(pos).storage)
+    node:set_string(meta_name, minetest.serialize(meta_data))
 end
 
-function platforms.get_meta_origin(pos, meta_name)
-    local creation_info = platforms.get_creation_info(pos)
-    local node_meta = minetest.get_meta(creation_info.origin)
+function platforms.storage_get(pos, meta_name)
+    local node_meta =
+        minetest.get_meta(platforms.get_creation_info(pos).storage)
     return minetest.deserialize(node_meta:get_string(meta_name))
 end
 
-function platforms.set_empty_slots(pos, empty_slots)
-    local origin = platforms.get_creation_info(pos).origin
-    platforms.set_meta_origin(origin, "empty_slots", empty_slots)
-end
-function platforms.get_empty_slots(pos)
-    return platforms.get_meta_origin(pos, "empty_slots")
-end
-
-function platforms.set_full_slots(pos, full_slots)
-    local origin = platforms.get_creation_info(pos).origin
-    platforms.set_meta_origin(origin, "full_slots", full_slots)
-end
-function platforms.get_full_slots(pos)
-    return platforms.get_meta_origin(pos, "full_slots")
-end
 
 function platforms.get_creation_info(pos)
     local node_meta = minetest.get_meta(pos)
     return minetest.deserialize(node_meta:get_string("creation_info"))
 end
 
-function platforms.get_host_info(pos)
-    return platforms.get_meta_origin(pos, "host_info")
+function platforms.set_listing(pos, listing)
+    platforms.storage_set(storage, "listing", listing)
 end
 
 function platforms.read_cmd(host_info, cmd_path)
@@ -166,8 +149,9 @@ function platforms.execute_cmd(host_info, cmd_path, command)
     return result
 end
 
-function platforms.get_size_by_dir(dir_size) 
-    local platform_size = math.ceil(math.sqrt((dir_size / 15) * 100)) < 3 and 3 or
-    math.ceil(math.sqrt((dir_size / 15) * 100))
+function platforms.get_size_by_dir(dir_size)
+    local platform_size =
+        math.ceil(math.sqrt((dir_size / 15) * 100)) < 3 and 3 or
+            math.ceil(math.sqrt((dir_size / 15) * 100))
     return platform_size
 end
