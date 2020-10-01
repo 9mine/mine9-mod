@@ -24,13 +24,16 @@ function platforms.wipe(storage, size, orientation)
 end
 
 function platforms.wipe_top(storage, size, orientation)
-    local full = platforms.get_full_slots(storage)
+    local full = platforms.storage_get(storage, "full_slots")
     if full ~= nil then
         for k, v in pairs(full) do
             local objects = minetest.get_objects_inside_radius(v, 2)
             while next(objects) ~= nil do
                 local k, v = next(objects)
-                v:remove()
+                if v:is_player() then
+                else
+                    v:remove()
+                end
                 table.remove(objects, k)
             end
         end
@@ -84,14 +87,9 @@ function platforms.storage_get(pos, meta_name)
     return minetest.deserialize(node_meta:get_string(meta_name))
 end
 
-
 function platforms.get_creation_info(pos)
     local node_meta = minetest.get_meta(pos)
     return minetest.deserialize(node_meta:get_string("creation_info"))
-end
-
-function platforms.set_listing(pos, listing)
-    platforms.storage_set(storage, "listing", listing)
 end
 
 function platforms.read_cmd(host_info, cmd_path)
