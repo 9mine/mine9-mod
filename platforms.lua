@@ -1,5 +1,5 @@
 platforms = {}
-function platforms.create(storage, size, orientation, node_name)
+function platforms.create(storage, size, orientation, node_name, count)
     if not node_name then node_name = "default:glass" end
     local pos1 = storage
 
@@ -12,10 +12,12 @@ function platforms.create(storage, size, orientation, node_name)
     local creation_info = {
         storage = storage,
         size = size,
-        orientation = orientation
+        orientation = orientation,
+        count = count
     }
     platforms.set_creation_info(storage, size, orientation, creation_info)
     platforms.generate_empty_slots(storage, size, orientation)
+    return creation_info
 end
 
 function platforms.wipe(storage, size, orientation)
