@@ -15,6 +15,7 @@ function platforms.create(storage, size, orientation, node_name, count)
         orientation = orientation,
         count = count
     }
+
     platforms.set_creation_info(storage, size, orientation, creation_info)
     platforms.generate_empty_slots(storage, size, orientation)
     return creation_info
@@ -26,10 +27,11 @@ function platforms.wipe(storage, size, orientation)
 end
 
 function platforms.wipe_top(storage, size, orientation)
-    local full = platforms.storage_get(storage, "full_slots")
-    if full ~= nil then
-        for k, v in pairs(full) do
-            local objects = minetest.get_objects_inside_radius(v, 2)
+    local listing = platforms.storage_get(storage, "listing")
+    if listing ~= nil then
+        for k, v in pairs(listing) do
+            v.pos.y = v.pos.y + 1.5
+            local objects = minetest.get_objects_inside_radius(v.pos, 1)
             while next(objects) ~= nil do
                 local k, v = next(objects)
                 if v:is_player() then
